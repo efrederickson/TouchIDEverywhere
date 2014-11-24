@@ -1,0 +1,9 @@
+Package: com.efrederickson.touchideverywhere
+Name: TouchID Everywhere
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: TouchID for passcode entry fields
+Maintainer: Elijah Frederickson
+Author: Elijah Frederickson
+Section: Tweaks

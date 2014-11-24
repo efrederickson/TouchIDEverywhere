@@ -1,0 +1,14 @@
+TouchIDEverywhere - Use TouchID to auto-fill Username & password fields
+Compatible with iOS 7+
+Similar to iTouchSecure
+
+Known issues
+-------------------------
+- Doesn't work on UIWebView forms
+- May accidentally recognize other text fields as a username
+- Uhh there was something else but I forgot...
+
+TODO: 
+- Obviously, fix known issues
+- Options: enable switch, auto press enter, don't fill usernames
+- some sort of glow or animation on the current field to make it obvious (other than the cursor)
