@@ -8,3 +8,29 @@
 		[[TIDEBioServer sharedInstance] setUpForMonitoring];
 	}
 }
+
+@interface SBLockStateAggregator : NSObject
++ (id)sharedInstance;
+- (void)_updateLockState;
+- (_Bool)hasAnyLockState;
+@end
+
+BOOL wasMonitoring = NO;
+%hook SBLockStateAggregator
+-(void)_updateLockState
+{
+	%orig;
+
+	if ([self hasAnyLockState])
+	{
+		wasMonitoring = [[TIDEBioServer sharedInstance] isMonitoring];
+		if (wasMonitoring)
+			[[TIDEBioServer sharedInstance] stopMonitoring];
+	}
+	else
+	{
+		if (wasMonitoring)
+			[[TIDEBioServer sharedInstance] startMonitoring];
+	}
+}
+%end

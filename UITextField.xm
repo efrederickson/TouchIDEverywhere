@@ -1,5 +1,8 @@
 #import <UIKit/UIKit.h>
 #import "UICKeyChainStore.h"
+#import <GraphicsServices/GraphicsServices.h>
+#import <CoreGraphics/CoreGraphics.h>
+#import <QuartzCore/QuartzCore.h>
 
 char observer[18] = "touchideverywhere";
 
@@ -22,6 +25,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
     {
     	[currentMonitoringField TouchIDEverywhere_complete:nil];
     	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), (void*)observer, CFSTR("com.efrederickson.touchideverywhere/success"), NULL);
+		CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/stopMonitoring"), nil, nil, YES); // Should already have been done though
     }
 }
 
@@ -50,7 +54,6 @@ void touchIdSuccess(CFNotificationCenterRef center,
 			}
 		}
 
-		//NSLog(@"[TouchIDEverywhere] %ld", (long)self.tag);
 		NSString *className = NSStringFromClass(self.superview.class);
 		NSString *pass = [UICKeyChainStore stringForKey:[NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass-%ld", className, (long)self.tag]];
 		BOOL hasStoredCode = pass != nil && pass.length > 0;
@@ -58,13 +61,6 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		{
 			self.layer.borderWidth = 1;
 			self.layer.borderColor = [UIColor greenColor].CGColor;
-/*
-			UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 20, 0, self.frame.size.width - 10, self.frame.size.height)];
-			[button addTarget:self action:@selector(TouchIDEverywhere_complete:) forControlEvents:UIControlEventTouchUpInside];
-			[button setTitle:@"COMPLETE" forState:UIControlStateNormal];
-			[self addSubview:button];
-			[button release];
-*/
 		}
 		else
 		{
@@ -92,7 +88,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	}
 	else
 	{
-		[potentialUsernameFields addObject:self];
+		[potentialUsernameFields insertObject:self atIndex:0];
 	}
 }
 
@@ -150,5 +146,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		if (associatedUsernameField)
 			associatedUsernameField.text = user;
 	}
+
 }
+
 %end

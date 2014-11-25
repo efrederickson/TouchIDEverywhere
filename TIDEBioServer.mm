@@ -50,18 +50,13 @@ void stopMonitoring_(CFNotificationCenterRef center,
 -(void)startMonitoring
 {
 	if(isMonitoring) 
-	{
 		return;
-	}
 	//notify_post(DISABLE_VH);
 	isMonitoring = YES;
 
-	// Get current monitor instance so observer can be added
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
-	// Save current device matching state
 	previousMatchingSetting = [monitor isMatchingEnabled];
 
-	// Begin listening :D
 	[monitor addObserver:self];
 	[monitor _setMatchingEnabled:YES];
 	[monitor _startMatching];
@@ -70,9 +65,7 @@ void stopMonitoring_(CFNotificationCenterRef center,
 -(void)stopMonitoring 
 {
 	if(!isMonitoring) 
-	{
 		return;
-	}
 	isMonitoring = NO;
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
 	[monitor removeObserver:self];
@@ -84,11 +77,15 @@ void stopMonitoring_(CFNotificationCenterRef center,
 {
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, &startMonitoring_, CFSTR("com.efrederickson.touchideverywhere/startMonitoring"), NULL, 0);
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, &stopMonitoring_, CFSTR("com.efrederickson.touchideverywhere/stopMonitoring"), NULL, 0);
-
 }
 
 -(void) notifyClientsOfSuccess
 {
 	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/success"), nil, nil, YES);
+}
+
+-(BOOL) isMonitoring
+{
+	return isMonitoring;
 }
 @end

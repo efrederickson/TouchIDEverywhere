@@ -1,5 +1,5 @@
 ARCHS = armv7 arm64
-#CFLAGS = -fobjc-arc
+CFLAGS = -fobjc-arc
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = TouchIDEverywhere

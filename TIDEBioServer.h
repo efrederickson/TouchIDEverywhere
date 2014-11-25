@@ -29,4 +29,5 @@
 -(void)startMonitoring;
 -(void)stopMonitoring;
 -(void)setUpForMonitoring;
+-(BOOL) isMonitoring;
 @end
