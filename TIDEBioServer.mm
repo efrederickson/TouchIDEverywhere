@@ -1,6 +1,7 @@
 #import "TIDEBioServer.h"
 #import <objc/runtime.h>
 #import <notify.h>
+#import <substrate.h>
 
 #define ENABLE_VH "virtualhome.enable"
 #define DISABLE_VH "virtualhome.disable"
@@ -42,6 +43,8 @@ void stopMonitoring_(CFNotificationCenterRef center,
 			[self notifyClientsOfSuccess];
 			[self stopMonitoring];
 			break;
+		case TouchIDNotMatched:
+			// TODO: notify client of failure so it can alert user somehow (label color change?)
 		default:
 			break;
 	}
@@ -57,6 +60,11 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
 	previousMatchingSetting = [monitor isMatchingEnabled];
 
+
+	oldObservers = [MSHookIvar<NSHashTable*>(monitor, "_observers") copy];
+	for (id observer in oldObservers)
+		[monitor removeObserver:observer];
+
 	[monitor addObserver:self];
 	[monitor _setMatchingEnabled:YES];
 	[monitor _startMatching];
@@ -69,6 +77,9 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	isMonitoring = NO;
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
 	[monitor removeObserver:self];
+	for (id observer in oldObservers)
+		[monitor addObserver:observer];
+	oldObservers = nil;
 	[monitor _setMatchingEnabled:previousMatchingSetting];
 	//notify_post(ENABLE_VH);
 }

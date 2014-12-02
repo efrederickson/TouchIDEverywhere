@@ -8,6 +8,7 @@ char observer[18] = "touchideverywhere";
 
 @interface UITextField (TouchIDEverywhere)
 -(void) TouchIDEverywhere_complete:(id)arg1;
+- (BOOL)keyboardInput:(id)arg1 shouldInsertText:(id)arg2 isMarkedText:(BOOL)arg3;
 @end
 
 UITextField *currentMonitoringField = nil;
@@ -43,10 +44,10 @@ void touchIdSuccess(CFNotificationCenterRef center,
 			UITextField *view = [potentialUsernameFields objectAtIndex:0];
 			[potentialUsernameFields removeObjectAtIndex:0];
 
-			CGPoint myPos = [self.superview convertPoint:self.frame.origin toView:nil];
-			CGPoint otherPos = [view.superview convertPoint:view.frame.origin toView:nil];
+			CGPoint myPos = [self.superview convertPoint:self.center toView:nil];
+			CGPoint otherPos = [view.superview convertPoint:view.center toView:nil];
 			CGFloat target = myPos.x - (otherPos.x + 0);
-			if (target <= self.frame.size.height && target >= 0)
+			if (target <= self.frame.size.height * 2 && target >= 0)
 			{
 				associatedUsernameField = (UITextField*)view;
 				[potentialUsernameFields removeAllObjects];
@@ -88,7 +89,8 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	}
 	else
 	{
-		[potentialUsernameFields insertObject:self atIndex:0];
+		if ([potentialUsernameFields containsObject:self] == NO)
+			[potentialUsernameFields insertObject:self atIndex:0];
 	}
 }
 
@@ -138,13 +140,22 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	if (self == associatedUsernameField)
 	{
 		self.text = user;
+		[self keyboardInput:self shouldInsertText:user isMarkedText:NO];
 		associatedPasswordField.text = pass;
+		[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:pass isMarkedText:NO];
+		[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO]; // Auto-enter
 	}
 	else
 	{
 		self.text = pass;
+		[self keyboardInput:self shouldInsertText:pass isMarkedText:NO];
+		[self keyboardInput:self shouldInsertText:@"\n" isMarkedText:NO]; // Auto-enter
+
 		if (associatedUsernameField)
+		{
 			associatedUsernameField.text = user;
+			[associatedUsernameField keyboardInput:associatedUsernameField shouldInsertText:user isMarkedText:NO];
+		}
 	}
 
 }

@@ -24,6 +24,7 @@
 @interface TIDEBioServer : NSObject <SBUIBiometricEventMonitorDelegate> {
 	BOOL isMonitoring;
 	BOOL previousMatchingSetting;
+	NSHashTable *oldObservers;
 }
 +(id)sharedInstance;
 -(void)startMonitoring;
