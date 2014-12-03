@@ -1,13 +1,20 @@
 #import <UIKit/UIKit.h>
 #import "UICKeyChainStore.h"
 #import <UIKit/UIKit.h>
+#import <WebKit/WebView.h>
 
-@interface UIWebView (touchideverywhere)
+@interface UIWebBrowserView : NSObject {
+	WebView *_webView;
+}
+@property(retain, nonatomic) WebView* webView;
+@end
+
+@interface UIWebBrowserView (touchideverywhere)
 -(void) TIDE_complete:(id)arg1;
 -(void) TIDE_storeUsername:(NSString*)u password:(NSString*)p;
 @end
 
-UIWebView *currentWebView = nil;
+UIWebBrowserView *currentWebView = nil;
 extern NSString *formName, *userName, *password;
 extern char observer[18]; /* UITextField.xm */
 
@@ -26,18 +33,18 @@ void touchIdSuccess_webview(CFNotificationCenterRef center,
     }
 }
 
-%hook UIWebView
+%hook UIWebBrowserView
 - (void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2 
 {
 	%orig;
 
 	NSString *js = @"var flag = 0; for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type) { flag = 1;} flag";
-	NSString *hasPasswordFields_ = [self stringByEvaluatingJavaScriptFromString:js];
+	NSString *hasPasswordFields_ = [self.webView stringByEvaluatingJavaScriptFromString:js];
 	BOOL hasPasswordFields = [hasPasswordFields_ boolValue];
 	if (hasPasswordFields)
 	{
 		NSString *a = @"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) { if (\"password\"==z[x].type) z[x].parentNode.id; }";
-		formName = [self stringByEvaluatingJavaScriptFromString:a];
+		formName = [self.webView stringByEvaluatingJavaScriptFromString:a];
 
 		NSString *keychainUserName = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username",formName];
 		NSString *keychainPassword = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-password",formName];
@@ -45,41 +52,40 @@ void touchIdSuccess_webview(CFNotificationCenterRef center,
 		userName = [UICKeyChainStore stringForKey:keychainUserName];
 
 		NSString *formCatcher = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) {if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type){if (%d)		z[x].style.border = \"thin solid green\"; 	else		z[x].style.border = \"thin solid red\"; }else if (\"password\"===z[x].type){	if (%d)		z[x].style.border = \"thin solid green\"; 	else		z[x].style.border = \"thin solid red\"; }}",userName!=nil&&userName.length>0,password!=nil&&password.length>0];
-		[self stringByEvaluatingJavaScriptFromString:formCatcher];
+		[self.webView stringByEvaluatingJavaScriptFromString:formCatcher];
 
 		if ((userName!= nil && userName.length > 0) || (password != nil && password.length > 0))
 		{
-			currentWebView = self;
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), (void*)observer, &touchIdSuccess_webview, CFSTR("com.efrederickson.touchideverywhere/success"), NULL, 0);
 	    	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/startMonitoring"), nil, nil, YES);
 		}
+		currentWebView = self;
 	}
 }
 
-// DOESN'T EXIST ON UIWEBVIEW
 - (void)webView:(id)arg1 willCloseFrame:(id)arg2
 {
-	%orig;
-
 	if (currentWebView)
 	{
 		NSString *usernameJs = @"var username=\"\"; var password=\"\";	for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;){if(\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type)username=z[x].value;else if(z[x].type===\"password\")password=z[x].value;} username; ";
 		NSString *passwordJs = @"var username=\"\"; var password=\"\";	for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;){if(\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type)username=z[x].value;else if(z[x].type===\"password\")password=z[x].value;} password; ";
-		NSString *username = [self stringByEvaluatingJavaScriptFromString:usernameJs];
-		NSString *password = [self stringByEvaluatingJavaScriptFromString:passwordJs];
+		NSString *username = [self.webView stringByEvaluatingJavaScriptFromString:usernameJs];
+		NSString *password = [self.webView stringByEvaluatingJavaScriptFromString:passwordJs];
 		[self TIDE_storeUsername:username password:password];
+		currentWebView = nil;
 	}
-	currentWebView = nil;
+	
+	%orig; 
 }
 
 %new
 -(void) TIDE_complete:(id)arg1
 {
   	NSString *filler = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",userName,password];
-	[self stringByEvaluatingJavaScriptFromString:filler];
+	[self.webView stringByEvaluatingJavaScriptFromString:filler];
 
 	NSString *submitter = [NSString stringWithFormat:@"document.getElementById(\"%@\").submit();", formName];
-	[self stringByEvaluatingJavaScriptFromString:submitter];
+	[self.webView stringByEvaluatingJavaScriptFromString:submitter];
 
 }
 
@@ -95,5 +101,13 @@ void touchIdSuccess_webview(CFNotificationCenterRef center,
 		[UICKeyChainStore setString:p forKey:keychainPassword];
 
 }
-
 %end
+
+%ctor
+{
+	// Assert not in Safari.
+	// We have special hooks for that.
+	if ([NSBundle.mainBundle.bundleIdentifier isEqual:@"com.apple.mobilesafari"])
+		return;
+	%init;
+}
