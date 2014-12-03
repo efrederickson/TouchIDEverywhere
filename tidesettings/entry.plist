@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = TIDESettings;
+	cell = PSLinkCell;
+	detail = TIDESettingsListController;
+	icon = TIDE.png;
+	isController = 1;
+	label = "TouchID Everywhere";
+    };
+}

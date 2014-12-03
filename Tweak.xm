@@ -15,6 +15,8 @@
 - (_Bool)hasAnyLockState;
 @end
 
+// Dunno if I even need this... 
+/*
 BOOL wasMonitoring = NO;
 %hook SBLockStateAggregator
 -(void)_updateLockState
@@ -34,3 +36,4 @@ BOOL wasMonitoring = NO;
 	}
 }
 %end
+*/

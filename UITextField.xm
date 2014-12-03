@@ -3,6 +3,7 @@
 #import <GraphicsServices/GraphicsServices.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
+#import "TIDESettings.h"
 
 char observer[18] = "touchideverywhere";
 
@@ -31,27 +32,32 @@ void touchIdSuccess(CFNotificationCenterRef center,
 }
 
 %hook UITextField
-//-(BOOL) secureTextEntry
 
 - (void)layoutSubviews
 {
 	%orig;
 
+	if ([TIDESettings.sharedInstance enabled] == NO)
+		return;
+
 	if (self.secureTextEntry)
 	{
-		while (potentialUsernameFields.count > 0)
+		if ([TIDESettings.sharedInstance fillUserName])
 		{
-			UITextField *view = [potentialUsernameFields objectAtIndex:0];
-			[potentialUsernameFields removeObjectAtIndex:0];
-
-			CGPoint myPos = [self.superview convertPoint:self.center toView:nil];
-			CGPoint otherPos = [view.superview convertPoint:view.center toView:nil];
-			CGFloat target = myPos.x - (otherPos.x + 0);
-			if (target <= self.frame.size.height * 2 && target >= 0)
+			while (potentialUsernameFields.count > 0)
 			{
-				associatedUsernameField = (UITextField*)view;
-				[potentialUsernameFields removeAllObjects];
-				break;
+				UITextField *view = [potentialUsernameFields objectAtIndex:0];
+				[potentialUsernameFields removeObjectAtIndex:0];
+
+				CGPoint myPos = [self.superview convertPoint:self.center toView:nil];
+				CGPoint otherPos = [view.superview convertPoint:view.center toView:nil];
+				CGFloat target = myPos.x - (otherPos.x + 0);
+				if (target <= self.frame.size.height * 2 && target >= 0)
+				{
+					associatedUsernameField = (UITextField*)view;
+					[potentialUsernameFields removeAllObjects];
+					break;
+				}
 			}
 		}
 
@@ -89,7 +95,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	}
 	else
 	{
-		if ([potentialUsernameFields containsObject:self] == NO)
+		if ([potentialUsernameFields containsObject:self] == NO && [TIDESettings.sharedInstance fillUserName])
 			[potentialUsernameFields insertObject:self atIndex:0];
 	}
 }
@@ -98,6 +104,9 @@ void touchIdSuccess(CFNotificationCenterRef center,
 {
 	%orig;
 
+	if ([TIDESettings.sharedInstance enabled] == NO)
+		return;
+		
 	currentMonitoringField = nil;
 	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/stopMonitoring"), nil, nil, YES);
 	if (self.secureTextEntry && self.text.length > 0)
@@ -121,6 +130,9 @@ void touchIdSuccess(CFNotificationCenterRef center,
 {
 	%orig;
 
+	if ([TIDESettings.sharedInstance enabled] == NO)
+		return;
+
 	if (self == associatedUsernameField || self.secureTextEntry)
 	{
 		currentMonitoringField = self;
@@ -140,22 +152,31 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	if (self == associatedUsernameField)
 	{
 		self.text = user;
-		[self keyboardInput:self shouldInsertText:user isMarkedText:NO];
+		if ([TIDESettings.sharedInstance advancedTextSupport])
+			[self keyboardInput:self shouldInsertText:user isMarkedText:NO];
+
 		associatedPasswordField.text = pass;
-		[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:pass isMarkedText:NO];
-		[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO]; // Auto-enter
+		if ([TIDESettings.sharedInstance advancedTextSupport])
+			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:pass isMarkedText:NO];
+
+		if ([TIDESettings.sharedInstance autoEnter])
+			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
 	}
 	else
 	{
 		self.text = pass;
-		[self keyboardInput:self shouldInsertText:pass isMarkedText:NO];
-		[self keyboardInput:self shouldInsertText:@"\n" isMarkedText:NO]; // Auto-enter
+		if ([TIDESettings.sharedInstance advancedTextSupport])
+			[self keyboardInput:self shouldInsertText:pass isMarkedText:NO];
 
 		if (associatedUsernameField)
 		{
 			associatedUsernameField.text = user;
-			[associatedUsernameField keyboardInput:associatedUsernameField shouldInsertText:user isMarkedText:NO];
+			if ([TIDESettings.sharedInstance advancedTextSupport])
+				[associatedUsernameField keyboardInput:associatedUsernameField shouldInsertText:user isMarkedText:NO];
 		}
+
+		if ([TIDESettings.sharedInstance autoEnter])
+			[self keyboardInput:self shouldInsertText:@"\n" isMarkedText:NO];
 	}
 
 }

@@ -2,6 +2,7 @@
 #import "UICKeyChainStore.h"
 #import <UIKit/UIKit.h>
 #import <WebKit/WebView.h>
+#import "TIDESettings.h"
 
 @interface UIWebBrowserView : NSObject {
 	WebView *_webView;
@@ -66,6 +67,9 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 	%orig;
 	//NSLog(@"TIDE: webView:didFinishLoadForFrame:");
 
+	if ([TIDESettings.sharedInstance enabled] == NO)
+		return;
+		
 	NSString *js = @"var flag = 0; for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type) { flag = 1;} flag";
 	// NSString *js = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",username,pass];
 	NSString *hasPasswordFields_ = [self.webView stringByEvaluatingJavaScriptFromString:js];
@@ -105,8 +109,12 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 
 - (void)webView:(id)arg1 willCloseFrame:(id)arg2
 {
-	%orig;
-
+	if ([TIDESettings.sharedInstance enabled] == NO)
+	{
+		%orig;
+		return;
+	}
+		
 	if (currentSafariView)
 	{
 		NSString *usernameJs = @"var username=\"\"; var password=\"\";	for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;){if(\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type)username=z[x].value;else if(z[x].type===\"password\")password=z[x].value;} username; ";
@@ -117,6 +125,8 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 		//NSLog(@"TIDE: %@", [self.webView stringByEvaluatingJavaScriptFromString:hax]);
 	}
 	currentSafariView = nil;
+
+	%orig;
 }
 
 %new
@@ -125,8 +135,11 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
   	NSString *filler = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",userName,password];
 	[self.webView stringByEvaluatingJavaScriptFromString:filler];
 
-	NSString *submitter = [NSString stringWithFormat:@"document.getElementById(\"%@\").submit();", formName];
-	[self.webView stringByEvaluatingJavaScriptFromString:submitter];
+	if ([TIDESettings.sharedInstance autoEnter])
+	{
+		NSString *submitter = [NSString stringWithFormat:@"document.getElementById(\"%@\").submit();", formName];
+		[self.webView stringByEvaluatingJavaScriptFromString:submitter];
+	}
 	//NSLog(@"TIDE: %@", [self.webView stringByEvaluatingJavaScriptFromString:submitter]);
 
 }
@@ -150,6 +163,9 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 {
 	%orig;
 
+	if ([TIDESettings.sharedInstance enabled] == NO)
+		return;
+		
 	NSString *js = @"var flag = 0; for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type) { flag = 1;} flag";
 	// NSString *js = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",username,pass];
 	[self.webView evaluateJavaScript:js completionHandler:^(id result,
@@ -197,6 +213,12 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 
 - (void)_loadingControllerDidStartLoading
 {
+	if ([TIDESettings.sharedInstance enabled] == NO)
+	{
+		%orig;
+		return;
+	}
+		
 	if (currentSafariView2)
 	{
 		NSString *usernameJs = @"var username=\"\"; var password=\"\";	for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;){if(\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type)username=z[x].value;else if(z[x].type===\"password\")password=z[x].value;} username; ";
@@ -234,7 +256,8 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 	//[self.webView stringByEvaluatingJavaScriptFromString:submitter];
 
 	[self.webView evaluateJavaScript:filler completionHandler:^(id a, id b) {
-		[self.webView evaluateJavaScript:submitter completionHandler:nil];
+		if ([TIDESettings.sharedInstance autoEnter])
+			[self.webView evaluateJavaScript:submitter completionHandler:nil];
 	}];
 
 	//NSLog(@"TIDE: %@", [self.webView stringByEvaluatingJavaScriptFromString:submitter]);
