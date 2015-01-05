@@ -38,7 +38,27 @@ void touchIdSuccess_webview(CFNotificationCenterRef center,
 {
 	%orig;
 
-	NSString *js = @"var flag = 0; for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type) { flag = 1;} flag";
+	//NSString *source = [self.webView stringByEvaluatingJavaScriptFromString:
+    //                @"document.getElementsByTagName('html')[0].outerHTML"];
+
+	for (NSString *urlStr in @[ @"google.com", @"gmail.com", @"youtube.com" ]) 
+	{
+		if ([[self.webView mainFrameURL] rangeOfString:urlStr].location != NSNotFound) 
+		{
+			return;
+		}
+	}
+
+	NSString *js = @"var flag = 0;"
+		//"var DIE = false;"
+		//"var x = document.URL;"
+		//"if (x.indexOf(\"google.com\") >= 0|| x.indexOf(\"gmail.com\") >= 0 || x.indexOf(\"youtube.com\") >= 0) DIE = true;"
+		//"if (!DIE) {"
+		"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)"
+		"if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type)"
+	    "{ flag = 1; }"
+	    //"}"
+	    "flag";
 	NSString *hasPasswordFields_ = [self.webView stringByEvaluatingJavaScriptFromString:js];
 	BOOL hasPasswordFields = [hasPasswordFields_ boolValue];
 	if (hasPasswordFields)

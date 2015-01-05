@@ -2,6 +2,11 @@
 #import <objc/runtime.h>
 #import <notify.h>
 #import <substrate.h>
+#import <UIKit/UIKit.h>
+
+@interface UIApplication (SpringBoard)
+-(BOOL) isLocked;
+@end
 
 #define ENABLE_VH "virtualhome.enable"
 #define DISABLE_VH "virtualhome.disable"
@@ -27,10 +32,11 @@ void stopMonitoring_(CFNotificationCenterRef center,
 @implementation TIDEBioServer
 
 +(id)sharedInstance {
-	static id sharedInstance = nil;
+	static TIDEBioServer* sharedInstance = nil;
 	static dispatch_once_t token = 0;
 	dispatch_once(&token, ^{
 		sharedInstance = [self new];
+		sharedInstance->oldObservers = [NSHashTable new];
 	});
 	return sharedInstance;
 }
@@ -44,7 +50,8 @@ void stopMonitoring_(CFNotificationCenterRef center,
 			[self stopMonitoring];
 			break;
 		case TouchIDNotMatched:
-			// TODO: notify client of failure so it can alert user somehow (label color change?)
+			[self notifyClientsOfFailure];
+			break;
 		default:
 			break;
 	}
@@ -52,14 +59,13 @@ void stopMonitoring_(CFNotificationCenterRef center,
 
 -(void)startMonitoring
 {
-	if(isMonitoring) 
+	if(isMonitoring || [[UIApplication sharedApplication] isLocked]) 
 		return;
 	//notify_post(DISABLE_VH);
 	isMonitoring = YES;
 
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
 	previousMatchingSetting = [monitor isMatchingEnabled];
-
 
 	oldObservers = [MSHookIvar<NSHashTable*>(monitor, "_observers") copy];
 	for (id observer in oldObservers)
@@ -72,13 +78,17 @@ void stopMonitoring_(CFNotificationCenterRef center,
 
 -(void)stopMonitoring 
 {
-	if(!isMonitoring) 
+	if(!isMonitoring || [[UIApplication sharedApplication] isLocked]) 
 		return;
+	
 	isMonitoring = NO;
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
-	[monitor removeObserver:self];
-	for (id observer in oldObservers)
-		[monitor addObserver:observer];
+	NSHashTable *observers = MSHookIvar<NSHashTable*>(monitor, "_observers");
+	if (observers && [observers containsObject:self])
+		[monitor removeObserver:self];
+	if (oldObservers && observers)
+		for (id observer in oldObservers)
+			[monitor addObserver:observer];
 	oldObservers = nil;
 	[monitor _setMatchingEnabled:previousMatchingSetting];
 	//notify_post(ENABLE_VH);
@@ -93,6 +103,12 @@ void stopMonitoring_(CFNotificationCenterRef center,
 -(void) notifyClientsOfSuccess
 {
 	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/success"), nil, nil, YES);
+}
+
+-(void) notifyClientsOfFailure
+{
+	// TODO: implement into clients
+	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/failure"), nil, nil, YES);
 }
 
 -(BOOL) isMonitoring

@@ -15,6 +15,7 @@
 @end
 
 @interface SafariWebView // : WKWebView
+-(NSURL*) URL;
 - (void)evaluateJavaScript:(NSString *)javaScriptString
          completionHandler:(void (^)(id,
                                      NSError *))completionHandle;
@@ -66,6 +67,14 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 - (void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2 {
 	%orig;
 	//NSLog(@"TIDE: webView:didFinishLoadForFrame:");
+
+	for (NSString *urlStr in @[ @"google.com", @"gmail.com", @"youtube.com" ]) 
+	{
+		if ([[self.webView mainFrameURL] rangeOfString:urlStr].location != NSNotFound) 
+		{
+			return;
+		}
+	}
 
 	if ([TIDESettings.sharedInstance enabled] == NO)
 		return;
@@ -166,6 +175,14 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 	if ([TIDESettings.sharedInstance enabled] == NO)
 		return;
 		
+	for (NSString *urlStr in @[ @"google.com", @"gmail.com", @"youtube.com" ]) 
+	{
+		if ([[self.webView URL].absoluteString rangeOfString:urlStr].location != NSNotFound) 
+		{
+			return;
+		}
+	}
+
 	NSString *js = @"var flag = 0; for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;) if (\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type||\"password\"===z[x].type) { flag = 1;} flag";
 	// NSString *js = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",username,pass];
 	[self.webView evaluateJavaScript:js completionHandler:^(id result,
@@ -247,21 +264,14 @@ void touchIdSuccess_safari(CFNotificationCenterRef center,
 %new
 -(void) TIDE_complete:(id)arg1
 {
-	// - (void)performAutoFillAction;
-
   	NSString *filler = [NSString stringWithFormat:@"for(var z=document.getElementsByTagName(\"input\"),x=z.length;x--;)\"username\"===z[x].type||\"username\"===z[x].name||\"email\"===z[x].type||\"email\"===z[x].name||\"user\"===z[x].name||\"user\"===z[x].type?z[x].value=\"%@\":\"password\"===z[x].type&&(z[x].value=\"%@\");",userName,password];
-	//[self.webView stringByEvaluatingJavaScriptFromString:filler];
 
 	NSString *submitter = [NSString stringWithFormat:@"document.getElementById(\"%@\").submit();", formName];
-	//[self.webView stringByEvaluatingJavaScriptFromString:submitter];
 
 	[self.webView evaluateJavaScript:filler completionHandler:^(id a, id b) {
 		if ([TIDESettings.sharedInstance autoEnter])
 			[self.webView evaluateJavaScript:submitter completionHandler:nil];
 	}];
-
-	//NSLog(@"TIDE: %@", [self.webView stringByEvaluatingJavaScriptFromString:submitter]);
-
 }
 
 %new

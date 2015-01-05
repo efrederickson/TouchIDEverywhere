@@ -4,6 +4,6 @@ Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: TouchID for passcode entry fields
-Maintainer: Elijah Frederickson
-Author: Elijah Frederickson
+Maintainer: Elijah Frederickson <elijah.frederickson@gmail.com>
+Author: Elijah Frederickson <elijah.frederickson@gmail.com>
 Section: Tweaks

@@ -51,7 +51,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 
 				CGPoint myPos = [self.superview convertPoint:self.center toView:nil];
 				CGPoint otherPos = [view.superview convertPoint:view.center toView:nil];
-				CGFloat target = myPos.x - (otherPos.x + 0);
+				CGFloat target = myPos.x - (otherPos.x);
 				if (target <= self.frame.size.height * 2 && target >= 0)
 				{
 					associatedUsernameField = (UITextField*)view;
@@ -62,8 +62,9 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		}
 
 		NSString *className = NSStringFromClass(self.superview.class);
-		NSString *pass = [UICKeyChainStore stringForKey:[NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass-%ld", className, (long)self.tag]];
+		NSString *pass = [UICKeyChainStore stringForKey:[NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass", className]];
 		BOOL hasStoredCode = pass != nil && pass.length > 0;
+		//NSLog(@"TIDE: %@", hasStoredCode?@YES:@NO);
 		if (hasStoredCode)
 		{
 			self.layer.borderWidth = 1;
@@ -71,6 +72,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		}
 		else
 		{
+			//NSLog(@"TIDE: RED");
 			self.layer.borderWidth = 1;
 			self.layer.borderColor = [UIColor redColor].CGColor;
 		}
@@ -79,7 +81,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		if (associatedUsernameField && associatedPasswordField)
 		{
 			NSString *className = NSStringFromClass(self.superview.class);
-			NSString *username = [UICKeyChainStore stringForKey:[NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username-%ld", className, (long)self.tag]];
+			NSString *username = [UICKeyChainStore stringForKey:[NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username", className]];
 			BOOL hasStoredCode = username != nil && username.length > 0;
 			if (hasStoredCode)
 			{
@@ -112,7 +114,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	if (self.secureTextEntry && self.text.length > 0)
 	{
 		NSString *className = NSStringFromClass(self.superview.class);
-		NSString *ident = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass-%ld", className, (long)self.tag];
+		NSString *ident = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass", className];
 		[UICKeyChainStore setString:self.text forKey:ident];
 	}
 	else if (self.text.length > 0)
@@ -120,7 +122,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 		if (associatedPasswordField && self == associatedUsernameField)
 		{
 			NSString *className = NSStringFromClass(self.superview.class);
-			NSString *ident = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username-%ld", className, (long)self.tag];
+			NSString *ident = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username", className];
 			[UICKeyChainStore setString:self.text forKey:ident];
 		}
 	}
@@ -145,9 +147,9 @@ void touchIdSuccess(CFNotificationCenterRef center,
 -(void) TouchIDEverywhere_complete:(id)arg1
 {
 	NSString *className = NSStringFromClass(self.superview.class);
-	NSString *pass_ = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass-%ld", className, (long)self.tag];
+	NSString *pass_ = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-pass", className];
 	NSString *pass = [UICKeyChainStore stringForKey:pass_];
-	NSString *user_ = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username-%ld", className, (long)self.tag];
+	NSString *user_ = [NSString stringWithFormat:@"TOUCHIDEVERYWHERE-%@-username", className];
 	NSString *user = [UICKeyChainStore stringForKey:user_];
 	if (self == associatedUsernameField)
 	{
