@@ -3,6 +3,7 @@
 #import <notify.h>
 #import <substrate.h>
 #import <UIKit/UIKit.h>
+#import <libactivator/libactivator.h>
 
 @interface UIApplication (SpringBoard)
 -(BOOL) isLocked;
@@ -62,6 +63,19 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	if(isMonitoring || [[UIApplication sharedApplication] isLocked]) 
 		return;
 	//notify_post(DISABLE_VH);
+	activatorListenerNames = nil;
+	id activator = [objc_getClass("LAActivator") sharedInstance];
+	if (activator)
+    {
+		id event = [objc_getClass("LAEvent") eventWithName:@"libactivator.fingerprint-sensor.press.single" mode:@"application"]; // LAEventNameFingerprintSensorPressSingle
+		if (event)
+        {
+			activatorListenerNames = [activator assignedListenerNamesForEvent:event];
+			if (activatorListenerNames)
+				for (NSString *listenerName in activatorListenerNames)
+					[activator removeListenerAssignment:listenerName fromEvent:event];
+		}
+	}
 	isMonitoring = YES;
 
 	SBUIBiometricEventMonitor* monitor = [[objc_getClass("BiometricKit") manager] delegate];
@@ -92,6 +106,16 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	oldObservers = nil;
 	[monitor _setMatchingEnabled:previousMatchingSetting];
 	//notify_post(ENABLE_VH);
+    id activator = [objc_getClass("LAActivator") sharedInstance];
+    if (activator && activatorListenerNames)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+           id event = [objc_getClass("LAEvent") eventWithName:@"libactivator.fingerprint-sensor.press.single" mode:@"application"]; // LAEventNameFingerprintSensorPressSingle
+           if (event)
+               for (NSString *listenerName in activatorListenerNames)
+                   [activator addListenerAssignment:listenerName toEvent:event];
+        });
+    }
 }
 
 -(void) setUpForMonitoring

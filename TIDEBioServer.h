@@ -25,6 +25,7 @@
 	BOOL isMonitoring;
 	BOOL previousMatchingSetting;
 	NSHashTable *oldObservers;
+	NSArray *activatorListenerNames;
 }
 +(id)sharedInstance;
 -(void)startMonitoring;
