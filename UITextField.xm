@@ -188,7 +188,8 @@ void touchIdFail(CFNotificationCenterRef center,
 			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:pass isMarkedText:NO];
 
 		if ([TIDESettings.sharedInstance autoEnter])
-			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
+			[associatedPasswordField insertText:@"\n"];
+			//[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
 	}
 	else
 	{
@@ -204,7 +205,7 @@ void touchIdFail(CFNotificationCenterRef center,
 		}
 
 		if ([TIDESettings.sharedInstance autoEnter])
-			[self keyboardInput:self shouldInsertText:@"\n" isMarkedText:NO];
+			[associatedPasswordField insertText:@"\n"];
 	}
 
 }

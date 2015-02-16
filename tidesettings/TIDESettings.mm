@@ -66,7 +66,7 @@
                  @"default": @YES,
                  @"defaults": @"com.efrederickson.touchideverywhere",
                  @"key": TIDEAppellancyKey,
-                 @"label": @"Auto-Enter/Auto submit",
+                 @"label": @"Use Appellancy",
                  },
              ];
 }
