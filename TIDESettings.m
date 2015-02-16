@@ -1,11 +1,11 @@
 #import "TIDESettings.h"
 
-/* Thanks, http://sharedinstance.net/2014/11/settings-the-right-way/ */
 #define TIDESettingsDomain   @"com.efrederickson.touchideverywhere"
 #define TIDEEnabledKey       @"TIDEEnabled"
 #define TIDEFillUsernameKey  @"TIDEFillUsername"
 #define TIDEAutoEnterKey     @"TIDEAutoEnter"
 #define TIDEATSKey           @"TIDEAdvancedTextSupport"
+#define TIDEAppellancyKey    @"TIDEAppellancy"
 
 // Don't want this going bye-bye
 __strong NSDictionary *userDefaults;
@@ -37,6 +37,11 @@ __strong NSDictionary *userDefaults;
 -(BOOL) advancedTextSupport
 {
 	return [[userDefaults objectForKey:TIDEATSKey]?:@YES boolValue];
+}
+
+-(BOOL) useAppellancy
+{
+	return [[userDefaults objectForKey:TIDEAppellancyKey]?:@YES boolValue];
 }
 
 @end

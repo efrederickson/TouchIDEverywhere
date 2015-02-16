@@ -2,6 +2,12 @@
 #import <SettingsKit/SKListControllerProtocol.h>
 #import <SettingsKit/SKTintedListController.h>
 
+#define TIDEEnabledKey       @"TIDEEnabled"
+#define TIDEFillUsernameKey  @"TIDEFillUsername"
+#define TIDEAutoEnterKey     @"TIDEAutoEnter"
+#define TIDEATSKey           @"TIDEAdvancedTextSupport"
+#define TIDEAppellancyKey    @"TIDEAppellancy"
+
 @interface TIDESettingsListController: SKTintedListController<SKListControllerProtocol>
 @end
 
@@ -23,7 +29,7 @@
                  @"cell": @"PSSwitchCell",
                  @"default": @YES,
                  @"defaults": @"com.efrederickson.touchideverywhere",
-                 @"key": @"TIDEEnabled",
+                 @"key": TIDEEnabledKey,
                  @"label": @"Enabled",
                  },
 
@@ -32,7 +38,7 @@
                  @"cell": @"PSSwitchCell",
                  @"default": @YES,
                  @"defaults": @"com.efrederickson.touchideverywhere",
-                 @"key": @"TIDEFillUsernameKey",
+                 @"key": TIDEFillUsernameKey,
                  @"label": @"Username support",
                  },
              
@@ -41,7 +47,7 @@
                  @"cell": @"PSSwitchCell",
                  @"default": @YES,
                  @"defaults": @"com.efrederickson.touchideverywhere",
-                 @"key": @"TIDEAutoEnterKey",
+                 @"key": TIDEAutoEnterKey,
                  @"label": @"Auto-Enter/Auto submit",
                  },
              
@@ -50,9 +56,18 @@
                  @"cell": @"PSSwitchCell",
                  @"default": @YES,
                  @"defaults": @"com.efrederickson.touchideverywhere",
-                 @"key": @"TIDEATSKey",
+                 @"key": TIDEATSKey,
                  @"label": @"Advanced Text Support (required for paypal/bank apps)",
-                 }
+                 },
+
+             @{ },
+             @{
+                 @"cell": @"PSSwitchCell",
+                 @"default": @YES,
+                 @"defaults": @"com.efrederickson.touchideverywhere",
+                 @"key": TIDEAppellancyKey,
+                 @"label": @"Auto-Enter/Auto submit",
+                 },
              ];
 }
 @end

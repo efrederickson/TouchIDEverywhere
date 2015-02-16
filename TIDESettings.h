@@ -5,4 +5,5 @@
 -(BOOL) fillUserName;
 -(BOOL) autoEnter;
 -(BOOL) advancedTextSupport; 
+-(BOOL) useAppellancy;
 @end

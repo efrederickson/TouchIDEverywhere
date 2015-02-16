@@ -1,3 +1,5 @@
+#import <libappellancy/AFaceDetector.h>
+
 @protocol SBUIBiometricEventMonitorDelegate
 @required
 -(void)biometricEventMonitor:(id)monitor handleBiometricEvent:(unsigned)event;
@@ -21,7 +23,7 @@
 #define TouchIDMatched     3
 #define TouchIDNotMatched  10
 
-@interface TIDEBioServer : NSObject <SBUIBiometricEventMonitorDelegate> {
+@interface TIDEBioServer : NSObject <SBUIBiometricEventMonitorDelegate, AFaceDetectorProtocol> {
 	BOOL isMonitoring;
 	BOOL previousMatchingSetting;
 	NSHashTable *oldObservers;

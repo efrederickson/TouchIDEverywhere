@@ -4,6 +4,8 @@
 #import <substrate.h>
 #import <UIKit/UIKit.h>
 #import <libactivator/libactivator.h>
+#import <libappellancy/AFaceDetector.h>
+#import "TIDESettings.h"
 
 @interface UIApplication (SpringBoard)
 -(BOOL) isLocked;
@@ -58,6 +60,18 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	}
 }
 
+
+-(void)faceRecognized:(NSString*)recognized confidence:(int)confidence
+{
+    [self notifyClientsOfSuccess];
+    [self stopMonitoring];
+}
+
+-(void)faceRejected
+{
+    [self notifyClientsOfFailure];
+}
+
 -(void)startMonitoring
 {
 	if(isMonitoring || [[UIApplication sharedApplication] isLocked]) 
@@ -88,6 +102,12 @@ void stopMonitoring_(CFNotificationCenterRef center,
 	[monitor addObserver:self];
 	[monitor _setMatchingEnabled:YES];
 	[monitor _startMatching];
+
+    if (objc_getClass("AFaceDetector") && [TIDESettings.sharedInstance useAppellancy])
+    {
+        [[objc_getClass("AFaceDetector") sharedDetector] registerDelegate:self];
+        [[objc_getClass("AFaceDetector") sharedDetector] start];
+    }
 }
 
 -(void)stopMonitoring 
@@ -115,6 +135,12 @@ void stopMonitoring_(CFNotificationCenterRef center,
                for (NSString *listenerName in activatorListenerNames)
                    [activator addListenerAssignment:listenerName toEvent:event];
         });
+    }
+
+    if (objc_getClass("AFaceDetector") && [TIDESettings.sharedInstance useAppellancy])
+    {
+        [[objc_getClass("AFaceDetector") sharedDetector] deregisterDelegate:self];
+        [[objc_getClass("AFaceDetector") sharedDetector] stop];
     }
 }
 
