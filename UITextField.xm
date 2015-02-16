@@ -31,6 +31,31 @@ void touchIdSuccess(CFNotificationCenterRef center,
     }
 }
 
+void touchIdFail(CFNotificationCenterRef center,
+                    void *observer,
+                    CFStringRef name,
+                    const void *object,
+                    CFDictionaryRef userInfo)
+{
+    if (currentMonitoringField)
+    {
+    	CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
+		[animation setDuration:0.05];
+		[animation setRepeatCount:4];
+		[animation setAutoreverses:YES];
+		[animation setFromValue:[NSValue valueWithCGPoint:CGPointMake(currentMonitoringField.center.x, currentMonitoringField.center.y - 10.0f)]];
+		[animation setToValue:[NSValue valueWithCGPoint:CGPointMake(currentMonitoringField.center.x, currentMonitoringField.center.y + 10.0f)]];
+		[currentMonitoringField.layer addAnimation:animation forKey:@"position"];
+		currentMonitoringField.layer.borderColor = [UIColor redColor].CGColor;
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((animation.duration * (animation.repeatCount * 2)) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+			currentMonitoringField.layer.borderColor = [UIColor greenColor].CGColor;
+		});
+
+    	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), (void*)observer, CFSTR("com.efrederickson.touchideverywhere/failure"), NULL);
+	}
+}
+
 %hook UITextField
 
 - (void)layoutSubviews
@@ -139,6 +164,7 @@ void touchIdSuccess(CFNotificationCenterRef center,
 	{
 		currentMonitoringField = self;
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), (void*)observer, &touchIdSuccess, CFSTR("com.efrederickson.touchideverywhere/success"), NULL, 0);
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), (void*)observer, &touchIdFail, CFSTR("com.efrederickson.touchideverywhere/failure"), NULL, 0);
 	    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.efrederickson.touchideverywhere/startMonitoring"), nil, nil, YES);
 	}	
 }
