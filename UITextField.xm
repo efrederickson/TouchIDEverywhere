@@ -188,8 +188,10 @@ void touchIdFail(CFNotificationCenterRef center,
 			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:pass isMarkedText:NO];
 
 		if ([TIDESettings.sharedInstance autoEnter])
+		{
 			[associatedPasswordField insertText:@"\n"];
-			//[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
+			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
+		}
 	}
 	else
 	{
@@ -205,7 +207,10 @@ void touchIdFail(CFNotificationCenterRef center,
 		}
 
 		if ([TIDESettings.sharedInstance autoEnter])
+		{
 			[associatedPasswordField insertText:@"\n"];
+			[associatedPasswordField keyboardInput:associatedPasswordField shouldInsertText:@"\n" isMarkedText:NO];
+		}
 	}
 
 }
